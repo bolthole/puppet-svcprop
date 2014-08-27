@@ -1,21 +1,33 @@
 # See http://www.kartar.net/2010/02/puppet-types-and-providers-are-easy/
 
 Puppet::Type.type(:svcprop).provide(:solaris) do
-  desc "Provider for Solaris svcprop"
+  desc 'Provider for Solaris svcprop'
   defaultfor :operatingsystem => :solaris
 
-  commands :svccfg => "/usr/sbin/svccfg"
-  commands :svcprop => "/usr/bin/svcprop"
-  commands :svcadm => "/usr/sbin/svcadm"
+  commands :svccfg  => '/usr/sbin/svccfg'
+  commands :svcprop => '/usr/bin/svcprop'
+  commands :svcadm  => '/usr/sbin/svcadm'
 
   def create
-    # we need to enclose multi-item values  with ()
-    if ("#{@resource[:value]}" =~ / /)
-      svccfg("-s",resource[:fmri],"setprop",resource[:property],"= ( ",resource[:value]," )")
-    else
-      svccfg("-s",resource[:fmri],"setprop",resource[:property],"=",resource[:value])
+    # Set a default type of 'astring'. The user can override this.
+    #
+    @resource[:type] ||= 'astring'
+
+    # If the user has given us an array, join it with spaces
+
+    if @resource[:value].is_a?(Array)
+      @resource[:value] = @resource[:value].join(' ')
     end
-    svcadm("refresh", @resource[:fmri])
+
+    # we need to enclose multi-item values  with ()
+
+    val = @resource[:value].match(/\s/) ? '(' + @resource[:value] + ')' :
+                                          @resource[:value]
+
+    svccfg('-s', @resource[:fmri], 'setprop', @resource[:property],
+           '=', "#{@resource[:type]}:",  val)
+
+    svcadm('refresh', @resource[:fmri])
   end
 
   def destroy
@@ -41,16 +53,16 @@ Puppet::Type.type(:svcprop).provide(:solaris) do
     rescue
       return false
     end
-    
+
     #Puppet.debug "svcprop return value is '#{output}'"
 
     if output == "#{@resource[:value]}"
       return true
     end
-    
+
     return false
   end
-  
+
 
   def validate
     Puppet.debug("  ### svcprop.solaris.validate called ## ")
@@ -59,6 +71,6 @@ Puppet::Type.type(:svcprop).provide(:solaris) do
             "svcprop must have fmri and property and value set"
     end
   end
-  
+
 end
 
