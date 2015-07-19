@@ -37,7 +37,7 @@ Puppet::Type.type(:svcprop).provide(:solaris) do
     end
 
     begin
-      output = svcprop("-p", @resource[:property], @resource[:fmri]).strip
+      output = svccfg("-s", @resource[:fmri], "listprop", "-o", "value", @resource[:property]).strip
     rescue
       return false
     end
