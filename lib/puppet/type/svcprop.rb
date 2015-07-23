@@ -10,7 +10,7 @@ used by other systems as well"
     ensurable do
       defaultvalues
       defaultto :present  #magic to default "ensure => present"
-      
+
       # This appears to be "change to state", for "ensurable"s.
       def change_to_s(oldstate,newstate)
         ##Puppet.debug "svcprop: ### old is '#{oldstate}', new is '#{newstate}'"
@@ -19,7 +19,6 @@ used by other systems as well"
         end
       end
     end
-
 
     newparam(:name) do
       desc "Mnemonic name"
@@ -34,6 +33,9 @@ used by other systems as well"
     newparam(:value) do
       desc "value to set/check for the named property"
     end
+    newparam(:type) do
+      desc 'type of the named property'
+    end
 
     def validate
       # Let this be done by provider. But keep this for syntax at this level
@@ -42,7 +44,4 @@ used by other systems as well"
       provider.validate if provider.respond_to?(:validate)
 
     end
-    
-    
-
 end
